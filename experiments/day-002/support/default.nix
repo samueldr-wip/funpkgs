@@ -23,6 +23,12 @@ let
     args = [ "-c" script];
 
     PATH = "${PATH}:${execline}/bin:${toybox}/bin";
+
+    dependencies = [
+      toybox
+      execline
+      execlineb
+    ];
   });
 
   writeTextFile = {
