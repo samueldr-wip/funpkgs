@@ -225,6 +225,36 @@ let
 
   '';
 
+  test-make = runExecline "test-make" {
+    src = ./test-make;
+    CC = "${tinycc}/bin/tcc";
+    PATH = "${tinycc}/bin";
+  } ''
+    importas out out
+    importas src src
+    importas CC CC
+
+    foreground {
+      printf "\n:: Source phase\n"
+    }
+
+    foreground {
+      cp -vr ''${src} /build/src
+    }
+
+    execline-cd src
+
+    foreground {
+      printf "\n:: Build phase\n"
+    }
+
+    ${commands [
+      "${netbsd.boot.make}/bin/make -f Makefile CC=tcc hello"
+      "mkdir -p \${out}/bin"
+      "cp -v hello \${out}/bin/hello"
+    ]}
+  '';
+
 in
   {
     ___000-fail = throw ''
@@ -239,6 +269,7 @@ in
     inherit
       heirloom-sh
       netbsd
+      test-make
       externalSrc
     ;
   }
