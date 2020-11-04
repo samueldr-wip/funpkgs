@@ -85,6 +85,12 @@ let
   externalSrc.netbsd."9.0".libutil = (fetchNetBSD "lib/libutil" "9.0" "02gm5a5zhh8qp5r5q5r7x8x6x50ir1i0ncgsnfwh1vnrz6mxbq7z");
   externalSrc.netbsd."9.0".make =    (fetchNetBSD "usr.bin/make" "9.0" "09szl3lp9s081h7f3nci5h9zc78wlk9a6g18mryrznrss90q9ngx");
   externalSrc.netbsd."9.0".mk =      (fetchNetBSD "share/mk" "9.0" "1gnz5mazr339dnjkwvsknfylpy2rcf1im3klxi9ddx69xspmcbn9");
+  externalSrc.heirloom.sh = (nixpkgs.fetchFromGitHub {
+    repo = "heirloom-sh";
+    owner = "samueldr";
+    rev = "868d5d277d9295757bef28badb799a42ef824332";
+    sha256 = "1lkq8ram654sjg9j3ff5m2mvy6zjyj9i5nk110c3cxq03mbb7z9n";
+  });
 in
   {
     inherit
