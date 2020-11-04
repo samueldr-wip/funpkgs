@@ -6,7 +6,7 @@ let
   }) {};
 
   fetchNixpkgs = {rev, sha256}: fetchTarball {
-    url = "https://github.com/NixOS/nixpkgs/archive/.tar.gz";
+    url = "https://github.com/NixOS/nixpkgs/archive/${rev}.tar.gz";
     inherit sha256;
   };
 
