@@ -116,7 +116,11 @@ let
       }
 
       ${commands (builtins.map (src:
-        ''$CC -g -c ${src} -D_PATH_DEFSYSPATH=\"''${out}/share/mk\"''
+      ''
+        $CC -g -c ${src}
+        -D_PATH_DEFSYSPATH=\"''${out}/share/mk\"
+        -D_PATH_DEFSHELLDIR=\"${heirloom-sh}/bin/\"
+      ''
       ) SRCS)}
 
       foreground {
