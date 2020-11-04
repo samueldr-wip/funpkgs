@@ -255,6 +255,38 @@ let
     ]}
   '';
 
+  lua = runExecline "lua-5.4.1" rec {
+      version = "5.4.1";
+      src = externalSrc.lua;
+      PATH = "${tinycc}/bin";
+    } ''
+      importas out out
+      importas src src
+      importas CC CC
+
+      foreground {
+        printf "\n:: Source phase\n"
+      }
+
+      foreground {
+        cp -vr ''${src} /build/src
+      }
+
+      execline-cd src
+
+      foreground {
+        printf "\n:: Build phase\n"
+      }
+
+      ${commands [
+        "rm makefile"
+        "ls -l"
+        "cp -v ${./lua-makefile} makefile"
+        "${netbsd.boot.make}/bin/make CC=tcc lua"
+        "mkdir -p \${out}/bin"
+        "cp -v lua \${out}/bin/lua"
+      ]}
+    '';
 in
   {
     ___000-fail = throw ''
@@ -268,6 +300,7 @@ in
 
     inherit
       heirloom-sh
+      lua
       netbsd
       test-make
       externalSrc

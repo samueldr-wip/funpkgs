@@ -91,6 +91,12 @@ let
     rev = "868d5d277d9295757bef28badb799a42ef824332";
     sha256 = "1lkq8ram654sjg9j3ff5m2mvy6zjyj9i5nk110c3cxq03mbb7z9n";
   });
+  externalSrc.lua = (nixpkgs.fetchFromGitHub {
+    repo = "lua";
+    owner = "lua";
+    rev = "v5.4.1";
+    sha256 = "0cn5kvmjrgq1pk1np2d2k63hkak1y3nalbmdk352dvm77gpvgjwd";
+  });
 in
   {
     inherit
