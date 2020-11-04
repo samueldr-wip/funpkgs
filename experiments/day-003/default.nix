@@ -279,9 +279,7 @@ let
       }
 
       ${commands [
-        "rm makefile"
-        "ls -l"
-        "cp -v ${./lua-makefile} makefile"
+        "patch -p1 -i ${./lua/0001-Remove-dependency-on-readline-and-ar.patch}"
         "${netbsd.boot.make}/bin/make CC=tcc lua"
         "mkdir -p \${out}/bin"
         "cp -v lua \${out}/bin/lua"
