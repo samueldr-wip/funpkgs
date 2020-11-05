@@ -39,6 +39,11 @@ let
       exit 1
     }
   '') cmds);
+  header = text: ''
+    foreground {
+      printf "\n:: ${text}\n"
+    }
+  '';
 
   # TODO: re-build here using _boot helpers.
   heirloom-sh = _boot.heirloom-sh;
