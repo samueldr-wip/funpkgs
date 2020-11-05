@@ -165,53 +165,78 @@ let
       printf "\n:: Source phase\n"
     }
 
-    foreground {
-      cp -vr ''${src} /build/src
-    }
+    ${commands [
+      "cp -vr \${src} /build/src"
+    ]}
 
     execline-cd src
+
+    ${commands [
+      "patch -p2 -i ${./heirloom/0001-heirloom-sh-Work-around-tcc-compilation-bug.patch}"
+    ]}
 
     foreground {
       printf "\n:: Build phase\n"
     }
 
+    ${
+      let
+        CFLAGS = "-D_GNU_SOURCE -D_FILE_OFFSET_BITS=64L";
+        LDFLAGS = "";
+      in
+      commands [
+      "$CC ${CFLAGS} -c args.c"
+      "$CC ${CFLAGS} -c blok.c"
+      "$CC ${CFLAGS} -c bltin.c"
+      "$CC ${CFLAGS} -c cmd.c"
+      "$CC ${CFLAGS} -c ctype.c"
+      "$CC ${CFLAGS} -c defs.c"
+      "$CC ${CFLAGS} -c echo.c"
+      "$CC ${CFLAGS} -c error.c"
+      "$CC ${CFLAGS} -c expand.c"
+      "$CC ${CFLAGS} -c fault.c"
+      "$CC ${CFLAGS} -c func.c"
+      "$CC ${CFLAGS} -c hash.c"
+      "$CC ${CFLAGS} -c hashserv.c"
+      "$CC ${CFLAGS} -c io.c"
+      "$CC ${CFLAGS} -c jobs.c"
+      "$CC ${CFLAGS} -c macro.c"
+      "$CC ${CFLAGS} -c main.c"
+      "$CC ${CFLAGS} -c msg.c"
+      "$CC ${CFLAGS} -c name.c"
+      "$CC ${CFLAGS} -c print.c"
+      "$CC ${CFLAGS} -c pwd.c"
+      "$CC ${CFLAGS} -c service.c"
+      "$CC ${CFLAGS} -c setbrk.c"
+      "$CC ${CFLAGS} -c stak.c"
+      "$CC ${CFLAGS} -c string.c"
+      "$CC ${CFLAGS} -c test.c"
+      "$CC ${CFLAGS} -c ulimit.c"
+      "$CC ${CFLAGS} -c word.c"
+      "$CC ${CFLAGS} -c xec.c"
+      "$CC ${CFLAGS} -c gmatch.c"
+      "$CC ${CFLAGS} -c getopt.c"
+      "$CC ${CFLAGS} -c strsig.c"
+      "$CC ${CFLAGS} -c version.c"
+      "$CC ${CFLAGS} -c mapmalloc.c"
+      "$CC ${CFLAGS} -c umask.c"
+      "$CC ${LDFLAGS} args.o blok.o bltin.o cmd.o ctype.o defs.o echo.o error.o expand.o fault.o func.o hash.o hashserv.o io.o jobs.o macro.o main.o msg.o name.o print.o pwd.o service.o setbrk.o stak.o string.o test.o ulimit.o word.o xec.o gmatch.o getopt.o strsig.o version.o mapmalloc.o umask.o  -o sh"
+    ]}
+
+    foreground {
+      printf "\n:: Check phase\n"
+    }
+
     ${commands [
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   args.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   blok.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   bltin.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   cmd.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   ctype.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   defs.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   echo.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   error.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   expand.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   fault.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   func.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   hash.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   hashserv.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   io.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   jobs.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   macro.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   main.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   msg.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   name.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   print.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   pwd.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   service.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   setbrk.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   stak.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   string.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   test.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   ulimit.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   word.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   xec.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   gmatch.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   getopt.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   strsig.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   version.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   mapmalloc.c"
-      "$CC -c -D_GNU_SOURCE  -D_FILE_OFFSET_BITS=64L   umask.c"
-      "$CC  args.o blok.o bltin.o cmd.o ctype.o defs.o echo.o error.o expand.o fault.o func.o hash.o hashserv.o io.o jobs.o macro.o main.o msg.o name.o print.o pwd.o service.o setbrk.o stak.o string.o test.o ulimit.o word.o xec.o gmatch.o getopt.o strsig.o version.o mapmalloc.o umask.o  -o sh"
+      ''./sh -c "type echo"''
+      ''./sh -c "echo ok"''
+      ''./sh -c "echo ok > out.txt"''
+      ''./sh -c "cat out.txt"''
+      ''./sh -c "echo one two three"''
+
+      # This broke at some point; any directory available.
+      # See patch.
+      ''./sh -c "echo /tmp/"''
     ]}
 
     foreground {
