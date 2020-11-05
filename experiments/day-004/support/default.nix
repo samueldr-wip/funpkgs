@@ -20,7 +20,27 @@ let
     inherit system;
 
     builder = execlineb;
-    args = [ "-c" script];
+    args = [ "-c" (
+        # First, check that /bin/sh is not in the sandbox.
+        # **ALL** of our builds have to include that test.
+        ''
+          ifelse { test -e /bin/sh } { foreground { echo ${
+            builtins.toJSON ''
+
+              Error when running a Funpkgs derivation
+
+                  /bin/sh exists in the sandbox.
+
+                  Tip: Use a wrapped `nix` binary with `nix-shell`.
+
+              Aborting build.
+
+            ''
+          } } exit 111 }
+        '' + ''
+          ${script}
+        ''
+    ) ];
 
     PATH = "${PATH}:${execline}/bin:${toybox}/bin";
 
