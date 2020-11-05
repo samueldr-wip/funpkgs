@@ -1,0 +1,60 @@
+From 0926d938053d8cd949a956f40aa4f3c5e051c240 Mon Sep 17 00:00:00 2001
+From: Samuel Dionne-Riel <samuel@dionne-riel.com>
+Date: Thu, 5 Nov 2020 04:30:55 -0500
+Subject: [PATCH] heirloom-sh: Work around tcc compilation bug
+
+Assuming /tmp is an existing folder, the following would break without this patch:
+
+sh -c 'echo /tmp/'
+
+It would segfault, stack overflow AFAICT.
+
+It *smells* like an optimisation issue with the breaks.
+---
+ heirloom-sh/expand.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/heirloom-sh/expand.c b/heirloom-sh/expand.c
+index fb176034..91c7d1b0 100644
+--- a/heirloom-sh/expand.c
++++ b/heirloom-sh/expand.c
+@@ -69,6 +69,7 @@ expand(unsigned char *as, int rcnt)
+ 	unsigned char *s2 = 0;
+ 	struct argnod	*schain = gchain;
+ 	BOOL	slash;
++	BOOL	shall_break;
+ 	int	len;
+ 	wchar_t	wc;
+ 
+@@ -85,6 +86,7 @@ expand(unsigned char *as, int rcnt)
+ 		open = 0;
+ 		do
+ 		{
++			shall_break = 0;
+ 			if ((len = nextc(&wc, (char *)cs)) <= 0) {
+ 				len = 1;
+ 				wc = (unsigned char)*cs;
+@@ -117,6 +119,9 @@ expand(unsigned char *as, int rcnt)
+ 					continue;
+ 				else
+ 					cs--;
++
++				// Work around bug with tcc
++				shall_break++;
+ 				break;
+ 
+ 			case '\\':
+@@ -124,7 +129,9 @@ expand(unsigned char *as, int rcnt)
+ 			default:
+ 				continue;
+ 			}
+-			break;
++			if (shall_break) {
++				break;
++			}
+ 		} while (TRUE);
+ 	}
+ 
+-- 
+2.28.0
+
