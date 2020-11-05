@@ -161,8 +161,6 @@ rec {
       # Checks that make can at least work with its own Makefiles
       "\${out}/bin/make -n -f Makefile.boot"
       "\${out}/bin/make -n"
-      # We cannot run the unit tests suite as it requires `diff` which we will
-      # not have in the boot packages set.
     ]}
   '';
 
