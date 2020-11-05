@@ -89,6 +89,7 @@ let
       mksys = externalSrc.netbsd.${version}.mk;
       CC = "${tinycc}/bin/tcc";
       CFLAGS='' -D_PATH_DEFSYSPATH=\"''${out}/share/mk\" -D_PATH_DEFSHELLDIR=\"${heirloom-sh}/bin/\" '';
+      PATH="${_boot.netbsd-make}/bin";
     } ''
       importas out out
       importas src src
@@ -96,45 +97,39 @@ let
       importas CC CC
       importas CFLAGS CFLAGS
 
-      foreground {
-        printf "\n:: Source phase\n"
-      }
+      ${header "Source phase"}
+      ${commands [
+        "cp -vr \${src}/usr.bin/make /build/src"
+      ]}
+      execline-cd /build/src
 
-      foreground {
-        cp -vr ''${src}/usr.bin/make /build/src
-      }
-
-      execline-cd src
-
+      ${header "Patch phase"}
       ${commands  [
         "patch -p2 -i ${./netbsd/0001-make-Funpkgs-hacks.patch}"
       ]}
 
-      foreground {
-        printf "\n:: Build phase\n"
-      }
-
+      ${header "Build phase"}
       ${commands [
-        #(builtins.map (src: "$CC -g -c ${src}") SRCS)
-        "${_boot.netbsd-make}/bin/make USE_META=no CFLAGS=\${CFLAGS} CC=\${CC} make"
-        # XXX: cannot run as it requires `diff` which we don't have yet.
-        #"${_boot.netbsd-make}/bin/make USE_META=no CFLAGS=\${CFLAGS} CC=\${CC} test"
+        "make USE_META=no CFLAGS=\${CFLAGS} CC=\${CC} make"
       ]}
 
-      foreground {
-        printf "\n:: Install phase\n"
-      }
-
+      ${header "Check phase"}
       ${commands [
-        "${_boot.netbsd-make}/bin/make USE_META=no CFLAGS=\${CFLAGS} CC=\${CC} .TARGET=\${out} install"
+        # XXX: cannot run as it requires `diff` which we don't have yet.
+        #"make USE_META=no CFLAGS=\${CFLAGS} CC=\${CC} test"
+      ]}
+
+      ${header "Install phase"}
+      ${commands [
+        "make USE_META=no CFLAGS=\${CFLAGS} CC=\${CC} .TARGET=\${out} install"
         "mkdir -p \${out}/share/"
         # These are probably inappropriate in many ways.
         # Though sys.mk *is* needed.
         "cp -vr \${mksys}/share/mk \${out}/share/mk"
       ]}
 
+      ${header "Setting up sys.mk"}
       execline-cd ''${out}/share
-
       ${commands  [
         "patch -p1 -i ${./netbsd/0001-Funpkgs-hacks.patch}"
       ]}
