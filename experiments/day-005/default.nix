@@ -7,6 +7,14 @@ let
   tinycc
   ;
 
+  _boot = import ./boot.nix {
+    inherit
+      externalSrc
+      runExecline
+      tinycc
+    ;
+  };
+
   banner = ''
     ▄▄▄▄▄▄▄▄                                ▄▄                           
     ██▀▀▀▀▀▀                                ██                           
@@ -32,151 +40,10 @@ let
     }
   '') cmds);
 
+  # TODO: re-build here using _boot helpers.
+  heirloom-sh = _boot.heirloom-sh;
+
   netbsd = {
-    # This is make built from scratch, without a "boot" make.
-    # Inspired by Makefile.boot
-    boot.make =
-      let
-        SRCS = [
-          # OBJ
-          "arch.c"
-          "buf.c"
-          "compat.c"
-          "cond.c"
-          "dir.c"
-          "for.c"
-          "hash.c"
-          "job.c"
-          "main.c"
-          "make.c"
-          "make_malloc.c"
-          "metachar.c" # Was missing from Makefile.boot
-          "parse.c"
-          "str.c"
-          "strlist.c"
-          "suff.c"
-          "targ.c"
-          "trace.c"
-          "var.c"
-          "util.c"
-
-          # LIBOBJ
-          "lst.lib/lstAppend.c"
-          "lst.lib/lstAtEnd.c"
-          "lst.lib/lstAtFront.c"
-          "lst.lib/lstClose.c"
-          "lst.lib/lstConcat.c"
-          "lst.lib/lstDatum.c"
-          "lst.lib/lstDeQueue.c"
-          "lst.lib/lstDestroy.c"
-          "lst.lib/lstDupl.c"
-          "lst.lib/lstEnQueue.c"
-          "lst.lib/lstFind.c"
-          "lst.lib/lstFindFrom.c"
-          "lst.lib/lstFirst.c"
-          "lst.lib/lstForEach.c"
-          "lst.lib/lstForEachFrom.c"
-          "lst.lib/lstInit.c"
-          "lst.lib/lstInsert.c"
-          "lst.lib/lstIsAtEnd.c"
-          "lst.lib/lstIsEmpty.c"
-          "lst.lib/lstLast.c"
-          "lst.lib/lstMember.c"
-          "lst.lib/lstNext.c"
-          "lst.lib/lstOpen.c"
-          "lst.lib/lstRemove.c"
-          "lst.lib/lstReplace.c"
-          "lst.lib/lstSucc.c"
-          "lst.lib/lstPrev.c"
-        ];
-      in
-    runExecline "netbsd-make.boot-9.0" rec {
-      version = "9.0";
-      src = externalSrc.netbsd.${version}.make;
-      mksys = externalSrc.netbsd.${version}.mk;
-      CC = "${tinycc}/bin/tcc";
-    } ''
-      importas out out
-      importas src src
-      importas CC CC
-      importas mksys mksys
-
-      foreground {
-        printf "\n:: Source phase\n"
-      }
-
-      foreground {
-        cp -vr ''${src}/usr.bin/make /build
-      }
-
-      execline-cd make
-
-      foreground {
-        printf "\n:: Build phase\n"
-      }
-
-      ${commands (builtins.map (src:
-      ''
-        $CC -g -c ${src}
-        -D_PATH_DEFSYSPATH=\"''${out}/share/mk\"
-        -D_PATH_DEFSHELLDIR=\"${heirloom-sh}/bin/\"
-      ''
-      ) SRCS)}
-
-      foreground {
-        printf "\n:: Link phase\n"
-      }
-
-      backtick -i OBJS {
-        find -name *.o -printf "%p "
-      }
-
-      importas -u -sd" " OBJS OBJS
-
-      ${commands  [
-        "$CC $OBJS -o make"
-      ]}
-
-      foreground {
-        printf "\n:: Install phase\n"
-      }
-
-      ${commands  [
-        "mkdir -p \${out}/bin"
-        "mv -v make \${out}/bin/make"
-      ]}
-
-      foreground {
-        printf "\n:: Misc. environment phase\n"
-      }
-
-      ${commands  [
-        "mkdir -p \${out}/share/"
-        # These are probably inappropriate in many ways.
-        # Though sys.mk *is* needed.
-        "cp -vr \${mksys}/share/mk \${out}/share/mk"
-      ]}
-
-      execline-cd ''${out}/share
-
-      ${commands  [
-        "patch -p1 -i ${./netbsd/0001-Funpkgs-hacks.patch}"
-      ]}
-
-      execline-cd /build/make
-
-      foreground {
-        printf "\n:: Check phase\n"
-      }
-
-      ${commands  [
-        # Counter-intuitively, needs to be set after installing
-        # or else sys.mk is not installed.
-        # XXX: cannot run as it requires `diff` which we don't have yet.
-        #"\${out}/bin/make -f unit-tests/Makefile test"
-      ]}
-    '';
-
     make = runExecline "netbsd-make-9.0" rec {
       version = "9.0";
       src = externalSrc.netbsd.${version}.make;
@@ -210,9 +77,9 @@ let
 
       ${commands [
         #(builtins.map (src: "$CC -g -c ${src}") SRCS)
-        "${netbsd.boot.make}/bin/make USE_META=no CFLAGS=\${CFLAGS} CC=\${CC} make"
+        "${_boot.netbsd-make}/bin/make USE_META=no CFLAGS=\${CFLAGS} CC=\${CC} make"
         # XXX: cannot run as it requires `diff` which we don't have yet.
-        #"${netbsd.boot.make}/bin/make USE_META=no CFLAGS=\${CFLAGS} CC=\${CC} test"
+        #"${_boot.netbsd-make}/bin/make USE_META=no CFLAGS=\${CFLAGS} CC=\${CC} test"
       ]}
 
       foreground {
@@ -220,7 +87,7 @@ let
       }
 
       ${commands [
-        "${netbsd.boot.make}/bin/make USE_META=no CFLAGS=\${CFLAGS} CC=\${CC} .TARGET=\${out} install"
+        "${_boot.netbsd-make}/bin/make USE_META=no CFLAGS=\${CFLAGS} CC=\${CC} .TARGET=\${out} install"
         "mkdir -p \${out}/share/"
         # These are probably inappropriate in many ways.
         # Though sys.mk *is* needed.
@@ -406,7 +273,6 @@ in
     '';
 
     inherit
-      heirloom-sh
       lua
       netbsd
       test-make
