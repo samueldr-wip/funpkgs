@@ -9,15 +9,29 @@ let
     inherit sha256;
   };
 
+  # Completely clear the sandbox when in the nix-shell.
+  options = '' --option sandbox-paths ""'';
+
   nixWrapper = nixpkgs.writeShellScriptBin "nix" ''
-    exec env -i ${nixpkgs.nix}/bin/nix --option sandbox-paths "" "$@"
+    exec env -i ${nixpkgs.nix}/bin/nix ${options} "$@"
+  '';
+  nix-buildWrapper = nixpkgs.writeShellScriptBin "nix-build" ''
+    exec env -i ${nixpkgs.nix}/bin/nix-build ${options} "$@"
   '';
 
-  nix-buildWrapper = nixpkgs.writeShellScriptBin "nix-build" ''
-    exec env -i ${nixpkgs.nix}/bin/nix-build --option sandbox-paths "" "$@"
-  '';
+  dependencies = ((import ./.).
+    runExecline "nothing" {} ''
+      false
+    '').dependencies
+  ;
 in
   nixpkgs.mkShell {
+    # Forces dependencies to be built
+    # Ugly, but effective.
+    # This is because the dependencies *do* need the sandbox to contain /bin/sh!
+    shellHook = ''
+      # ${builtins.concatStringsSep " ; " dependencies}
+    '';
     buildInputs = [
       nix-buildWrapper
       nixWrapper
