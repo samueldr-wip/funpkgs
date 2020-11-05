@@ -14,7 +14,10 @@ let
   targetPrefix = pkgs.stdenv.cc.targetPrefix;
 
   # Toybox provides our "coreutils" (no sh!)
-  toybox = pkgs.toybox.overrideAttrs({
+  toybox = (pkgs.toybox.override({ extraConfig = ''
+      CONFIG_DIFF=y
+      CONFIG_EXPR=y
+    ''; })).overrideAttrs({
     patches ? [],
     makeFlags ? [],
     postPatch ? "",
