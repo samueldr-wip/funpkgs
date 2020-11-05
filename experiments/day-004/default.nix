@@ -301,6 +301,8 @@ in
       lua
       netbsd
       test-make
+
+      runExecline
       externalSrc
     ;
   }
