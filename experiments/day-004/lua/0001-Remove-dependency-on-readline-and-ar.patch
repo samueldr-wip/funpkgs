@@ -1,0 +1,40 @@
+From 852e4e6074ef63473abdfb0978afecd0638e9ee3 Mon Sep 17 00:00:00 2001
+From: Samuel Dionne-Riel <samuel@dionne-riel.com>
+Date: Wed, 4 Nov 2020 03:07:47 -0500
+Subject: [PATCH] Remove dependency on readline and ar
+
+---
+ makefile | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/makefile b/makefile
+index 7af55332..7f03b568 100644
+--- a/makefile
++++ b/makefile
+@@ -60,9 +60,9 @@ LOCAL = $(TESTS) $(CWARNS)
+ 
+ 
+ # enable Linux goodies
+-MYCFLAGS= $(LOCAL) -std=c99 -DLUA_USE_LINUX -DLUA_USE_READLINE
+-MYLDFLAGS= $(LOCAL) -Wl,-E
+-MYLIBS= -ldl -lreadline
++MYCFLAGS= $(LOCAL) -std=c99 -DLUA_USE_LINUX #-DLUA_USE_READLINE
++MYLDFLAGS= $(LOCAL) #-Wl,-E
++MYLIBS= -ldl #-lreadline
+ 
+ 
+ CC= gcc
+@@ -105,8 +105,8 @@ $(CORE_T): $(CORE_O) $(AUX_O) $(LIB_O)
+ 	$(AR) $@ $?
+ 	$(RANLIB) $@
+ 
+-$(LUA_T): $(LUA_O) $(CORE_T)
+-	$(CC) -o $@ $(MYLDFLAGS) $(LUA_O) $(CORE_T) $(LIBS) $(MYLIBS) $(DL)
++$(LUA_T): $(LUA_O)  $(CORE_O) $(AUX_O) $(LIB_O)
++	$(CC) -o $@ $(MYLDFLAGS) $(LUA_O)  $(CORE_O) $(AUX_O) $(LIB_O) $(LIBS) $(MYLIBS) $(DL)
+ 
+ 
+ llex.o:
+-- 
+2.28.0
+
