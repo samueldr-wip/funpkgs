@@ -135,6 +135,13 @@ let
 
       ${commands  [
         "$CC $OBJS -o make"
+      ]}
+
+      foreground {
+        printf "\n:: Install phase\n"
+      }
+
+      ${commands  [
         "mkdir -p \${out}/bin"
         "mv -v make \${out}/bin/make"
       ]}
@@ -148,6 +155,25 @@ let
         # These are probably inappropriate in many ways.
         # Though sys.mk *is* needed.
         "cp -vr \${mksys}/share/mk \${out}/share/mk"
+      ]}
+
+      execline-cd ''${out}/share
+
+      ${commands  [
+        "patch -p1 -i ${./netbsd/0001-Funpkgs-hacks.patch}"
+      ]}
+
+      execline-cd /build/make
+
+      foreground {
+        printf "\n:: Check phase\n"
+      }
+
+      ${commands  [
+        # Counter-intuitively, needs to be set after installing
+        # or else sys.mk is not installed.
+        # XXX: cannot run as it requires `diff` which we don't have yet.
+        #"\${out}/bin/make -f unit-tests/Makefile test"
       ]}
     '';
   };

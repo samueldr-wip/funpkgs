@@ -1,0 +1,531 @@
+From 3b0a5f385ecb300e721aa9b35fa052d2aaecd8b3 Mon Sep 17 00:00:00 2001
+From: Samuel Dionne-Riel <samuel@dionne-riel.com>
+Date: Thu, 5 Nov 2020 05:26:57 -0500
+Subject: [PATCH] Funpkgs hacks
+
+---
+ mk/bsd.man.mk  |   2 +-
+ mk/bsd.own.mk  |  66 ++++++------
+ mk/bsd.prog.mk | 268 ++++++++++++++++++++++++-------------------------
+ mk/sys.mk      |   2 +-
+ 4 files changed, 169 insertions(+), 169 deletions(-)
+
+diff --git a/mk/bsd.man.mk b/mk/bsd.man.mk
+index cef0eb9..dc24a0f 100644
+--- a/mk/bsd.man.mk
++++ b/mk/bsd.man.mk
+@@ -65,7 +65,7 @@ __installpage: .USE
+ 	    (${_MKSHMSG_INSTALL} ${.TARGET}; \
+ 	     ${_MKSHECHO} "${INSTALL_FILE} -o ${MANOWN} -g ${MANGRP} -m ${MANMODE} \
+ 		${.ALLSRC} ${.TARGET}" && \
+-	     ${INSTALL_FILE} -o ${MANOWN} -g ${MANGRP} -m ${MANMODE} \
++	     ${INSTALL_FILE} -D -o ${MANOWN} -g ${MANGRP} -m ${MANMODE} \
+ 		${.ALLSRC} ${.TARGET})
+ 
+ # XXX consider including bsd.links.mk and using __linkinstall instead
+diff --git a/mk/bsd.own.mk b/mk/bsd.own.mk
+index 1cfa77c..d3a94e7 100644
+--- a/mk/bsd.own.mk
++++ b/mk/bsd.own.mk
+@@ -520,7 +520,7 @@ TOOL_MAKEFS=		makefs
+ TOOL_MAKEINFO=		makeinfo
+ TOOL_MAKEKEYS=		makekeys
+ TOOL_MAKESTRS=		makestrs
+-TOOL_MAKEWHATIS=	/usr/libexec/makewhatis
++TOOL_MAKEWHATIS=	${out}/libexec/makewhatis
+ TOOL_MANDOC_ASCII=	mandoc -Tascii
+ TOOL_MANDOC_HTML=	mandoc -Thtml
+ TOOL_MANDOC_LINT=	mandoc -Tlint
+@@ -568,14 +568,14 @@ TOOL_TBL=		tbl
+ TOOL_TIC=		tic
+ TOOL_UUDECODE=		uudecode
+ TOOL_VGRIND=		vgrind -f
+-TOOL_VFONTEDPR=		/usr/libexec/vfontedpr
++TOOL_VFONTEDPR=		${out}/libexec/vfontedpr
+ TOOL_ZIC=		zic
+ 
+ .endif	# USETOOLS != yes						# }
+ 
+ # Standalone code should not be compiled with PIE or CTF
+ # Should create a better test
+-.if defined(BINDIR) && ${BINDIR} == "/usr/mdec"
++.if defined(BINDIR) && ${BINDIR} == "${out}/mdec"
+ NOPIE=			# defined
+ NOCTF=			# defined
+ .elif ${MACHINE} == "sun2"
+@@ -680,66 +680,66 @@ check_RELEASEDIR: .PHONY .NOTMAIN
+ # Where the system object and source trees are kept; can be configurable
+ # by the user in case they want them in ~/foosrc and ~/fooobj (for example).
+ #
+-BSDSRCDIR?=	/usr/src
+-BSDOBJDIR?=	/usr/obj
++BSDSRCDIR?=	${out}/src
++BSDOBJDIR?=	${out}/obj
+ NETBSDSRCDIR?=	${BSDSRCDIR}
+ 
+-BINGRP?=	wheel
++BINGRP?=	root
+ BINOWN?=	root
+ BINMODE?=	555
+ NONBINMODE?=	444
+ 
+ # These are here mainly because we don't want suid root in case
+ # a Makefile defines BINMODE.
+-RUMPBINGRP?=	wheel
++RUMPBINGRP?=	root
+ RUMPBINOWN?=	root
+ RUMPBINMODE?=	555
+ RUMPNONBINMODE?=444
+ 
+-MANDIR?=	/usr/share/man
+-MANGRP?=	wheel
++MANDIR?=	${out}/share/man
++MANGRP?=	root
+ MANOWN?=	root
+ MANMODE?=	${NONBINMODE}
+ MANINSTALL?=	${_MANINSTALL}
+ 
+-INFODIR?=	/usr/share/info
+-INFOGRP?=	wheel
++INFODIR?=	${out}/share/info
++INFOGRP?=	root
+ INFOOWN?=	root
+ INFOMODE?=	${NONBINMODE}
+ 
+-LIBDIR?=	/usr/lib
++LIBDIR?=	${out}/lib
+ 
+-LINTLIBDIR?=	/usr/libdata/lint
++LINTLIBDIR?=	${out}/libdata/lint
+ LIBGRP?=	${BINGRP}
+ LIBOWN?=	${BINOWN}
+ LIBMODE?=	${NONBINMODE}
+ 
+-DOCDIR?=	/usr/share/doc
+-DOCGRP?=	wheel
++DOCDIR?=	${out}/share/doc
++DOCGRP?=	root
+ DOCOWN?=	root
+ DOCMODE?=	${NONBINMODE}
+ 
+-NLSDIR?=	/usr/share/nls
+-NLSGRP?=	wheel
++NLSDIR?=	${out}/share/nls
++NLSGRP?=	root
+ NLSOWN?=	root
+ NLSMODE?=	${NONBINMODE}
+ 
+-KMODULEGRP?=	wheel
++KMODULEGRP?=	root
+ KMODULEOWN?=	root
+ KMODULEMODE?=	${NONBINMODE}
+ 
+-LOCALEDIR?=	/usr/share/locale
+-LOCALEGRP?=	wheel
++LOCALEDIR?=	${out}/share/locale
++LOCALEGRP?=	root
+ LOCALEOWN?=	root
+ LOCALEMODE?=	${NONBINMODE}
+ 
+ FIRMWAREDIR?=	/libdata/firmware
+-FIRMWAREGRP?=	wheel
++FIRMWAREGRP?=	root
+ FIRMWAREOWN?=	root
+ FIRMWAREMODE?=	${NONBINMODE}
+ 
+-DEBUGDIR?=	/usr/libdata/debug
+-DEBUGGRP?=	wheel
++DEBUGDIR?=	${out}/libdata/debug
++DEBUGGRP?=	root
+ DEBUGOWN?=	root
+ DEBUGMODE?=	${NONBINMODE}
+ 
+@@ -1111,8 +1111,8 @@ MKRUMP=		no
+ 
+ #
+ # Build a dynamically linked /bin and /sbin, with the necessary shared
+-# libraries moved from /usr/lib to /lib and the shared linker moved
+-# from /usr/libexec to /lib
++# libraries moved from ${out}/lib to /lib and the shared linker moved
++# from ${out}/libexec to /lib
+ #
+ # Note that if the BINDIR is not /bin or /sbin, then we always use the
+ # non-DYNAMICROOT behavior (i.e. it is only enabled for programs in /bin
+@@ -1311,7 +1311,7 @@ PRESERVE?=
+ .else
+ PRESERVE?=	-p
+ .endif
+-RENAME?=	-r
++RENAME?=	#-r
+ HRDLINK?=	-l h
+ SYMLINK?=	-l s
+ 
+@@ -1421,12 +1421,12 @@ TOOL_GZIP_N=		${TOOL_GZIP} ${GZIP_N_FLAG}
+ .if exists(${NETBSDSRCDIR}/../xsrc)
+ X11SRCDIR!=		cd "${NETBSDSRCDIR}/../xsrc" && pwd
+ .else
+-X11SRCDIR=		/usr/xsrc
++X11SRCDIR=		${out}/xsrc
+ .endif
+ .endif # !defined(X11SRCDIR)
+ 
+ X11SRCDIR.local?=	${X11SRCDIR}/local
+-X11ROOTDIR?=		/usr/X11R7
++X11ROOTDIR?=		${out}/X11R7
+ X11BINDIR?=		${X11ROOTDIR}/bin
+ X11ETCDIR?=		/etc/X11
+ X11FONTDIR?=		${X11ROOTDIR}/lib/X11/fonts
+@@ -1559,11 +1559,11 @@ X11LOADABLE?=			yes
+ .if exists(${NETBSDSRCDIR}/../extsrc)
+ EXTSRCSRCDIR!=		cd "${NETBSDSRCDIR}/../extsrc" && pwd
+ .else
+-EXTSRCSRCDIR=		/usr/extsrc
++EXTSRCSRCDIR=		${out}/extsrc
+ .endif
+ .endif # !defined(EXTSRCSRCDIR)
+ 
+-EXTSRCROOTDIR?=		/usr/ext
++EXTSRCROOTDIR?=		${out}/ext
+ EXTSRCBINDIR?=		${EXTSRCROOTDIR}/bin
+ EXTSRCETCDIR?=		/etc/ext
+ EXTSRCINCDIR?=		${EXTSRCROOTDIR}/include
+@@ -1589,7 +1589,7 @@ MAKEDIRTARGET=\
+ 			real="${.CURDIR}/$${dir}" ;; \
+ 		esac; \
+ 		show=$${this:-.}; \
+-		echo "$${target} ===> $${show%/}$${1:+	(with: $$@)}"; \
++		echo "$${target} ===> $${show}$${1:+	(with: $$@)}"; \
+ 		cd "$${real}" \
+ 		&& ${MAKEDIRTARGETENV} ${MAKE} _THISDIR_="$${this}" "$$@" $${target}; \
+ 	}; \
+@@ -1655,11 +1655,11 @@ _MKTARGET_YACC?=	${_MKMSG_YACC} ${.CURDIR:T}/${.TARGET}
+ TARGETS+=	lintmanpages
+ .endif
+ 
+-TESTSBASE=	/usr/tests${MLIBDIR:D/${MLIBDIR}}
++TESTSBASE=	${out}/tests${MLIBDIR:D/${MLIBDIR}}
+ 
+ # Override with tools versions if needed
+ .if ${MKCTF:Uno} != "no" && !defined(NOCTF) && \
+-    (exists(${TOOL_CTFCONVERT}) || exists(/usr/bin/${TOOL_CTFCONVERT}))
++    (exists(${TOOL_CTFCONVERT}) || exists(${out}/bin/${TOOL_CTFCONVERT}))
+ CTFCONVERT=	${TOOL_CTFCONVERT}
+ CTFMERGE=	${TOOL_CTFMERGE}
+ .endif
+diff --git a/mk/bsd.prog.mk b/mk/bsd.prog.mk
+index eb6d844..b7c8bea 100644
+--- a/mk/bsd.prog.mk
++++ b/mk/bsd.prog.mk
+@@ -78,25 +78,25 @@ CTFMFLAGS+= -g
+ .endif
+ 
+ # ELF platforms depend on crti.o, crtbegin.o, crtend.o, and crtn.o
+-.ifndef LIBCRTBEGIN
+-LIBCRTBEGIN=	${DESTDIR}/usr/lib/${MLIBDIR:D${MLIBDIR}/}crti.o ${_GCC_CRTBEGIN}
+-.MADE: ${LIBCRTBEGIN}
+-.endif
+-.ifndef LIBCRTEND
+-LIBCRTEND=	${_GCC_CRTEND} ${DESTDIR}/usr/lib/${MLIBDIR:D${MLIBDIR}/}crtn.o
+-.MADE: ${LIBCRTEND}
+-.endif
+-_SHLINKER=	${SHLINKDIR}/ld.elf_so
+-
+-.ifndef LIBCRT0
+-LIBCRT0=	${DESTDIR}/usr/lib/${MLIBDIR:D${MLIBDIR}/}crt0.o
+-.MADE: ${LIBCRT0}
+-.endif
+-
+-.ifndef LIBCRTI
+-LIBCRTI=	${DESTDIR}/usr/lib/${MLIBDIR:D${MLIBDIR}/}crti.o
+-.MADE: ${LIBCRTI}
+-.endif
++#.ifndef LIBCRTBEGIN
++#LIBCRTBEGIN=	${DESTDIR}/usr/lib/${MLIBDIR:D${MLIBDIR}/}crti.o ${_GCC_CRTBEGIN}
++#.MADE: ${LIBCRTBEGIN}
++#.endif
++#.ifndef LIBCRTEND
++#LIBCRTEND=	${_GCC_CRTEND} ${DESTDIR}/usr/lib/${MLIBDIR:D${MLIBDIR}/}crtn.o
++#.MADE: ${LIBCRTEND}
++#.endif
++#_SHLINKER=	${SHLINKDIR}/ld.elf_so
++
++#.ifndef LIBCRT0
++#LIBCRT0=	${DESTDIR}/usr/lib/${MLIBDIR:D${MLIBDIR}/}crt0.o
++#.MADE: ${LIBCRT0}
++#.endif
++
++#.ifndef LIBCRTI
++#LIBCRTI=	${DESTDIR}/usr/lib/${MLIBDIR:D${MLIBDIR}/}crti.o
++#.MADE: ${LIBCRTI}
++#.endif
+ 
+ ##### Installed system library definitions
+ #
+@@ -106,115 +106,115 @@ LIBCRTI=	${DESTDIR}/usr/lib/${MLIBDIR:D${MLIBDIR}/}crti.o
+ #	etc..
+ #	NB:	If you are a library here, add it in bsd.README
+ 
+-_LIBLIST=\
+-	archive \
+-	asn1 \
+-	atf_c \
+-	atf_cxx \
+-	bind9 \
+-	bluetooth \
+-	bsdmalloc \
+-	bz2 \
+-	c \
+-	c_pic \
+-	com_err \
+-	compat \
+-	crypt \
+-	crypto \
+-	curses \
+-	cxx \
+-	dbm \
+-	des \
+-	dns \
+-	edit \
+-	event \
+-	event_openssl \
+-	event_pthreads \
+-	execinfo \
+-	expat \
+-	fetch \
+-	fl \
+-	form \
+-	g2c \
+-	gcc \
+-	gnumalloc \
+-	gssapi \
+-	hdb \
+-	heimbase \
+-	heimntlm \
+-	hx509 \
+-	intl \
+-	ipsec \
+-	isc \
+-	isccc \
+-	isccfg \
+-	kadm5clnt \
+-	kadm5srv \
+-	kafs \
+-	krb5 \
+-	kvm \
+-	l \
+-	lber \
+-	ldap \
+-	ldap_r \
+-	lua \
+-	lutok \
+-	m \
+-	magic \
+-	menu \
+-	netpgpverify \
+-	ns \
+-	objc \
+-	ossaudio \
+-	panel \
+-	pam \
+-	pcap \
+-	pci \
+-	posix \
+-	pthread \
+-	puffs \
+-	quota \
+-	radius \
+-	refuse \
+-	resolv \
+-	rmt \
+-	roken \
+-	rpcsvc \
+-	rt \
+-	rump \
+-	rumpfs_cd9660fs \
+-	rumpfs_efs \
+-	rumpfs_ext2fs \
+-	rumpfs_ffs \
+-	rumpfs_hfs \
+-	rumpfs_lfs \
+-	rumpfs_msdosfs \
+-	rumpfs_nfs \
+-	rumpfs_ntfs \
+-	rumpfs_syspuffs \
+-	rumpfs_tmpfs \
+-	rumpfs_udf \
+-	rumpfs_ufs \
+-	rumpuser \
+-	saslc \
+-	skey \
+-	sl \
+-	sqlite3 \
+-	ss \
+-	ssh \
+-	ssl \
+-	ssp \
+-	stdc++ \
+-	supc++ \
+-	terminfo \
+-	tre \
+-	unbound \
+-	usbhid \
+-	util \
+-	wind \
+-	wrap \
+-	y \
+-	z 
++#_LIBLIST=\
++#	archive \
++#	asn1 \
++#	atf_c \
++#	atf_cxx \
++#	bind9 \
++#	bluetooth \
++#	bsdmalloc \
++#	bz2 \
++#	c \
++#	c_pic \
++#	com_err \
++#	compat \
++#	crypt \
++#	crypto \
++#	curses \
++#	cxx \
++#	dbm \
++#	des \
++#	dns \
++#	edit \
++#	event \
++#	event_openssl \
++#	event_pthreads \
++#	execinfo \
++#	expat \
++#	fetch \
++#	fl \
++#	form \
++#	g2c \
++#	gcc \
++#	gnumalloc \
++#	gssapi \
++#	hdb \
++#	heimbase \
++#	heimntlm \
++#	hx509 \
++#	intl \
++#	ipsec \
++#	isc \
++#	isccc \
++#	isccfg \
++#	kadm5clnt \
++#	kadm5srv \
++#	kafs \
++#	krb5 \
++#	kvm \
++#	l \
++#	lber \
++#	ldap \
++#	ldap_r \
++#	lua \
++#	lutok \
++#	m \
++#	magic \
++#	menu \
++#	netpgpverify \
++#	ns \
++#	objc \
++#	ossaudio \
++#	panel \
++#	pam \
++#	pcap \
++#	pci \
++#	posix \
++#	pthread \
++#	puffs \
++#	quota \
++#	radius \
++#	refuse \
++#	resolv \
++#	rmt \
++#	roken \
++#	rpcsvc \
++#	rt \
++#	rump \
++#	rumpfs_cd9660fs \
++#	rumpfs_efs \
++#	rumpfs_ext2fs \
++#	rumpfs_ffs \
++#	rumpfs_hfs \
++#	rumpfs_lfs \
++#	rumpfs_msdosfs \
++#	rumpfs_nfs \
++#	rumpfs_ntfs \
++#	rumpfs_syspuffs \
++#	rumpfs_tmpfs \
++#	rumpfs_udf \
++#	rumpfs_ufs \
++#	rumpuser \
++#	saslc \
++#	skey \
++#	sl \
++#	sqlite3 \
++#	ss \
++#	ssh \
++#	ssl \
++#	ssp \
++#	stdc++ \
++#	supc++ \
++#	terminfo \
++#	tre \
++#	unbound \
++#	usbhid \
++#	util \
++#	wind \
++#	wrap \
++#	y \
++#	z 
+ 
+ .for _lib in ${_LIBLIST}
+ .ifndef LIB${_lib:tu}
+@@ -314,20 +314,20 @@ CPPFLAGS+=	-DRESCUEDIR=\"${RESCUEDIR}\"
+ 
+ _PROGLDOPTS=
+ .if ${SHLINKDIR} != "/usr/libexec"	# XXX: change or remove if ld.so moves
+-_PROGLDOPTS+=	-Wl,-dynamic-linker=${_SHLINKER}
++#_PROGLDOPTS+=	-Wl,-dynamic-linker=${_SHLINKER}
+ .endif
+ .if ${SHLIBDIR} != "/usr/lib"
+-_PROGLDOPTS+=	-Wl,-rpath,${SHLIBDIR} \
++#_PROGLDOPTS+=	-Wl,-rpath,${SHLIBDIR} \
+ 		-L=${SHLIBDIR}
+ .elif ${SHLIBINSTALLDIR} != "/usr/lib"
+-_PROGLDOPTS+=	-Wl,-rpath-link,${DESTDIR}${SHLIBINSTALLDIR} \
+-		-L=${SHLIBINSTALLDIR}
++#_PROGLDOPTS+=	-Wl,-rpath-link,${DESTDIR}${SHLIBINSTALLDIR} \
++#		-L=${SHLIBINSTALLDIR}
+ .endif
+ 
+ __proginstall: .USE
+ 	${_MKTARGET_INSTALL}
+-	${INSTALL_FILE} -o ${BINOWN} -g ${BINGRP} -m ${BINMODE} \
+-		${STRIPFLAG} ${.ALLSRC} ${.TARGET}
++	${INSTALL_FILE} -D -o ${BINOWN} -g ${BINGRP} -m ${BINMODE} \
++		${STRIPFLAG} ${.ALLSRC} $$out/bin/${.TARGET}
+ 
+ __progrumpinstall: .USE
+ 	${_MKTARGET_INSTALL}
+diff --git a/mk/sys.mk b/mk/sys.mk
+index e761122..9cc8fa7 100644
+--- a/mk/sys.mk
++++ b/mk/sys.mk
+@@ -5,7 +5,7 @@
+ # Do not put conditionals that are set on different files here and
+ # expect them to work.
+ 
+-unix?=		We run NetBSD.
++unix?=		I know this!
+ 
+ .SUFFIXES: .a .o .ln .s .S .c .cc .cpp .cxx .C .f .F .r .p .l .y .sh
+ 
+-- 
+2.28.0
+
