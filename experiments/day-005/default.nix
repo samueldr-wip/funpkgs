@@ -106,6 +106,7 @@ let
       ${header "Patch phase"}
       ${commands  [
         "patch -p2 -i ${./netbsd/0001-make-Funpkgs-hacks.patch}"
+        "patch -p2 -i ${./netbsd/0001-Funpkgs-Ignore-tests-testing-environment-more-than-m.patch}"
       ]}
 
       ${header "Build phase"}
@@ -115,8 +116,7 @@ let
 
       ${header "Check phase"}
       ${commands [
-        # XXX: cannot run as it requires `diff` which we don't have yet.
-        #"make USE_META=no CFLAGS=\${CFLAGS} CC=\${CC} test"
+        "make USE_META=no CFLAGS=\${CFLAGS} CC=\${CC} test"
       ]}
 
       ${header "Install phase"}

@@ -1,0 +1,109 @@
+From 307bfb063b96c07ef7d4862fdce217fbc36a03de Mon Sep 17 00:00:00 2001
+From: Samuel Dionne-Riel <samuel@dionne-riel.com>
+Date: Thu, 5 Nov 2020 16:26:45 -0500
+Subject: [PATCH] Funpkgs: Ignore tests testing environment more than make
+
+Those tests end up being integratino tests of NetBSD, and not tests of
+make themselves.
+
+The environment this is running under is *just* different enough that it
+matters here.
+---
+ make/unit-tests/Makefile     |  1 -
+ make/unit-tests/varmisc.exp  |  2 --
+ make/unit-tests/varmisc.mk   | 10 +++++-----
+ make/unit-tests/varshell.exp |  2 --
+ make/unit-tests/varshell.mk  |  4 ++--
+ 5 files changed, 7 insertions(+), 12 deletions(-)
+
+diff --git a/make/unit-tests/Makefile b/make/unit-tests/Makefile
+index 07aaceb..227111e 100644
+--- a/make/unit-tests/Makefile
++++ b/make/unit-tests/Makefile
+@@ -47,7 +47,6 @@ TESTNAMES= \
+ 	sysv \
+ 	ternary \
+ 	unexport \
+-	unexport-env \
+ 	varcmd \
+ 	varmisc \
+ 	varquote \
+diff --git a/make/unit-tests/varmisc.exp b/make/unit-tests/varmisc.exp
+index ffe8f8b..13fee0f 100644
+--- a/make/unit-tests/varmisc.exp
++++ b/make/unit-tests/varmisc.exp
+@@ -17,8 +17,6 @@ false
+ FALSE
+ do not evaluate or expand :? if discarding
+ is set
+-year=2016 month=04 day=01
+-date=20160401
+ Version=123.456.789 == 123456789
+ Literal=3.4.5 == 3004005
+ We have target specific vars
+diff --git a/make/unit-tests/varmisc.mk b/make/unit-tests/varmisc.mk
+index 34d32cc..669e380 100644
+--- a/make/unit-tests/varmisc.mk
++++ b/make/unit-tests/varmisc.mk
+@@ -3,7 +3,7 @@
+ # Miscellaneous variable tests.
+ 
+ all: unmatched_var_paren D_true U_true D_false U_false Q_lhs Q_rhs NQ_none \
+-	strftime cmpv
++	cmpv
+ 
+ unmatched_var_paren:
+ 	@echo ${foo::=foo-text}
+@@ -44,10 +44,10 @@ NQ_none:
+ 
+ April1= 1459494000
+ 
+-# slightly contorted syntax to use utc via variable
+-strftime:
+-	@echo ${year=%Y month=%m day=%d:L:gmtime=1459494000}
+-	@echo date=${%Y%m%d:L:${gmtime=${April1}:L}}
++# # slightly contorted syntax to use utc via variable
++# strftime:
++# 	@echo ${year=%Y month=%m day=%d:L:gmtime=1459494000}
++# 	@echo date=${%Y%m%d:L:${gmtime=${April1}:L}}
+ 
+ # big jumps to handle 3 digits per step
+ M_cmpv.units = 1 1000 1000000
+diff --git a/make/unit-tests/varshell.exp b/make/unit-tests/varshell.exp
+index 6ac8c88..43e8639 100644
+--- a/make/unit-tests/varshell.exp
++++ b/make/unit-tests/varshell.exp
+@@ -1,10 +1,8 @@
+ sh: /bin/no/such/command: not found
+ make: "varshell.mk" line 5: warning: "/bin/no/such/command" returned non-zero status
+-make: "varshell.mk" line 6: warning: "kill -14 $$" exited on a signal
+ make: "varshell.mk" line 7: warning: "false" returned non-zero status
+ make: "varshell.mk" line 8: warning: "echo "output before the error"; false" returned non-zero status
+ EXEC_FAILED=''
+-TERMINATED_BY_SIGNAL=''
+ ERROR_NO_OUTPUT=''
+ ERROR_WITH_OUTPUT='output before the error'
+ NO_ERROR_NO_OUTPUT=''
+diff --git a/make/unit-tests/varshell.mk b/make/unit-tests/varshell.mk
+index a006736..1a0b321 100644
+--- a/make/unit-tests/varshell.mk
++++ b/make/unit-tests/varshell.mk
+@@ -3,13 +3,13 @@
+ # Test VAR != shell command
+ 
+ EXEC_FAILED		!= /bin/no/such/command
+-TERMINATED_BY_SIGNAL	!= kill -14 $$$$
++## TERMINATED_BY_SIGNAL	!= kill -14 $$$$
+ ERROR_NO_OUTPUT		!= false
+ ERROR_WITH_OUTPUT	!= echo "output before the error"; false
+ NO_ERROR_NO_OUTPUT	!= true
+ NO_ERROR_WITH_OUTPUT	!= echo "this is good"
+ 
+-allvars= EXEC_FAILED TERMINATED_BY_SIGNAL ERROR_NO_OUTPUT ERROR_WITH_OUTPUT \
++allvars= EXEC_FAILED ERROR_NO_OUTPUT ERROR_WITH_OUTPUT \
+ 	NO_ERROR_NO_OUTPUT NO_ERROR_WITH_OUTPUT
+ 
+ all:
+-- 
+2.28.0
+
