@@ -357,7 +357,8 @@ let
     }
 
     ${commands [
-      "${netbsd.boot.make}/bin/make -f Makefile CC=tcc hello"
+      "${netbsd.make}/bin/make -f Makefile CC=tcc hello"
+      "./hello"
       "mkdir -p \${out}/bin"
       "cp -v hello \${out}/bin/hello"
     ]}
@@ -388,7 +389,7 @@ let
 
       ${commands [
         "patch -p1 -i ${./lua/0001-Remove-dependency-on-readline-and-ar.patch}"
-        "${netbsd.boot.make}/bin/make CC=tcc lua"
+        "${netbsd.make}/bin/make CC=tcc lua"
         "mkdir -p \${out}/bin"
         "cp -v lua \${out}/bin/lua"
       ]}
