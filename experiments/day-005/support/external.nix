@@ -93,6 +93,13 @@ let
     rev = "60d16fd50aaaf4fec3014376f14cea62cb9aa5a9";
     sha256 = "1rqi4mzx0z1wp39n52v1l2b9ibbzkawz5gd5dpxz9lf3lcfynqaj";
   });
+  externalSrc.nawk-old = (nixpkgs.fetchFromGitHub {
+    repo = "nawk-old";
+    owner = "junghans";
+    # Using an older version by design here.
+    rev = "1ab0265fec229c5e15d2f252360eca1834c679c7";
+    sha256 = "07jmx8bd98d5g7r4a4macpwbi53ljc5wavaxccr3xl1g6x6wz6xy";
+  });
   externalSrc.heirloom = (nixpkgs.fetchFromGitHub {
     repo = "heirloom-mirror";
     owner = "samueldr";

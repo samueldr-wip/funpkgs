@@ -195,6 +195,36 @@ let
     ]}
   '';
 
+  nawk-old =  runExecline "nawk-old" rec {
+    src = externalSrc.nawk-old;
+    #src = /Users/samuel/Projects/Funpkgs/experiments/day-005/__workdir/plan9port;
+    PATH = "${tinycc}/bin:${heirloom-sh}/bin:${netbsd.make}/bin";
+    CC = "tcc";
+  } ''
+    importas out out
+    importas src src
+    importas CC CC
+
+    ${header "Source phase"}
+    ${commands [
+      "cp -r \${src} /build/src"
+    ]}
+    execline-cd /build/src
+
+    ${header "Build phase"}
+    ${commands [
+      "make CC=tcc a.out"
+    ]}
+
+    ${header "Install phase"}
+    ${commands [
+      "mv a.out awk"
+      "mkdir -p \${out}/bin \${out}/share/man/man1"
+      "cp -v awk.1 \${out}/share/man/man1/awk.1"
+      "cp -v awk \${out}/bin/"
+    ]}
+  '';
+
   lua = runExecline "lua-5.4.1" rec {
       version = "5.4.1";
       src = externalSrc.lua;
@@ -241,6 +271,7 @@ in
       netbsd
       test-make
       miniyacc
+      nawk-old
 
       runExecline
       externalSrc
