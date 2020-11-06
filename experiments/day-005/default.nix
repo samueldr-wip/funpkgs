@@ -168,6 +168,33 @@ let
     ]}
   '';
 
+  miniyacc =  runExecline "miniyacc" rec {
+    src = externalSrc.miniyacc;
+    PATH = "${tinycc}/bin:${heirloom-sh}/bin";
+    CC = "tcc";
+  } ''
+    importas out out
+    importas src src
+    importas CC CC
+
+    ${header "Source phase"}
+    ${commands [
+      "cp -r \${src} /build/src"
+    ]}
+    execline-cd /build/src
+
+    ${header "Build phase"}
+    ${commands [
+      "$CC -o yacc yacc.c"
+    ]}
+
+    ${header "Install phase"}
+    ${commands [
+      "mkdir -p \${out}/bin"
+      "cp -v yacc \${out}/bin/yacc"
+    ]}
+  '';
+
   lua = runExecline "lua-5.4.1" rec {
       version = "5.4.1";
       src = externalSrc.lua;
@@ -213,6 +240,7 @@ in
       lua
       netbsd
       test-make
+      miniyacc
 
       runExecline
       externalSrc
